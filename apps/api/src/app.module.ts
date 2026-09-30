@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
-import { APP_GUARD, APP_INTERCEPTOR, Reflector } from '@nestjs/core';
+import { MiddlewareConsumer, Module, type NestModule } from '@nestjs/common';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR, Reflector } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { RolesGuard } from './common/guards/roles.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { RequestContextMiddleware } from './common/middleware/request-context.middleware';
 import { AppConfigModule } from './config/config.module';
 import { CONFIG_NAMESPACE, type HttpConfig } from './config';
 import { AiModule } from './modules/ai/ai.module';
@@ -47,6 +49,7 @@ import { UsersModule } from './modules/users/users.module';
     AiModule,
   ],
   providers: [
+    RequestContextMiddleware,
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     // Order is significant: throttle, then authenticate, then authorise.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
@@ -55,7 +58,14 @@ import { UsersModule } from './modules/users/users.module';
       useFactory: (reflector: Reflector) => new RolesGuard(reflector),
       inject: [Reflector],
     },
+    { provide: APP_FILTER, useClass: AllExceptionsFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    // Correlation context runs ahead of every guard so a throttled, rejected, or
+    // failed request still carries an id into the logs and the error envelope.
+    consumer.apply(RequestContextMiddleware).forRoutes('*path');
+  }
+}

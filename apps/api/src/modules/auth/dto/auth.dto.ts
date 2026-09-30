@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString, Length, MaxLength } from 'class-validator';
+import {
+  Equals,
+  IsBoolean,
+  IsEmail,
+  IsOptional,
+  IsString,
+  Length,
+  MaxLength,
+} from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ example: 'ada@voiceflow.local' })
@@ -36,6 +44,19 @@ export class RegisterDto {
   @IsString()
   @MaxLength(16)
   locale?: string = 'en-US';
+
+  @ApiProperty({ example: true, description: 'Must be true; the terms cannot be declined' })
+  @IsBoolean()
+  @Equals(true, { message: 'The terms must be accepted to create an account' })
+  acceptedTerms!: true;
+
+  /**
+   * Mirrors the shared schema's `z.literal(true)`.
+   *
+   * The field must be declared here or the global `forbidNonWhitelisted` pipe
+   * would reject the legitimate client payload. `@Equals(true)` is what
+   * enforces acceptance; the controller may not simply hardcode it.
+   */
 }
 
 export class RefreshTokenDto {
@@ -57,4 +78,10 @@ export class ChangePasswordDto {
   @IsString()
   @Length(10, 128)
   newPassword!: string;
+}
+
+export class ForgotPasswordDto {
+  @ApiProperty({ example: 'ada@voiceflow.local' })
+  @IsEmail({}, { message: 'A valid email address is required' })
+  email!: string;
 }

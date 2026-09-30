@@ -93,6 +93,26 @@ export class UsersService {
     return this.users.findOne({ where: { id, isActive: true } });
   }
 
+  /**
+   * Loads a user *including* the password hash.
+   *
+   * Used only by credential verification and the password-change flow. Kept as
+   * an explicit, narrowly named method so its callers are easy to audit, and
+   * separate from `findActiveById` so the hash cannot be pulled in by accident.
+   */
+  async findByIdWithPassword(id: string): Promise<User | null> {
+    return this.users
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
+  /** Replaces the stored hash, e.g. after a rehash or a password change. */
+  async savePasswordHash(id: string, passwordHash: string): Promise<void> {
+    await this.users.update({ id }, { passwordHash });
+  }
+
   async recordLogin(id: string, at: Date): Promise<void> {
     await this.users.update({ id }, { lastLoginAt: at });
   }

@@ -3,6 +3,9 @@ module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
   rootDir: '.',
   testEnvironment: 'node',
+  // Runs before the module registry is touched, so config validation triggered
+  // by an import sees the placeholders rather than an empty environment.
+  setupFiles: ['<rootDir>/test/setup-env.ts'],
   testRegex: 'src/.*\\.spec\\.ts$',
   transform: {
     '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: '<rootDir>/tsconfig.json' }],

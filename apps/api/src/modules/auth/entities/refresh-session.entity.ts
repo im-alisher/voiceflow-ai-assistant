@@ -42,6 +42,10 @@ export class RefreshSession extends BaseEntity {
   @Column({ name: 'rotated_at', type: 'timestamptz', nullable: true })
   rotatedAt!: Date | null;
 
+  /** Last time a request was authorised by this session. */
+  @Column({ name: 'last_used_at', type: 'timestamptz', nullable: true })
+  lastUsedAt!: Date | null;
+
   @Column({ name: 'role', type: 'varchar', length: 16, default: 'user' })
   role!: UserRole;
 

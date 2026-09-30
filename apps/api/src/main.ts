@@ -1,11 +1,6 @@
 import 'reflect-metadata';
 
-import {
-  Logger,
-  ValidationPipe,
-  type INestApplication,
-  type ValidationPipeOptions,
-} from '@nestjs/common';
+import { Logger, ValidationPipe, type INestApplication } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -16,20 +11,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { AppLogger } from './common/logger';
 import { CONFIG_NAMESPACE, type HttpConfig, type LogConfig } from './config';
-
-/**
- * Shared behaviour of the global `ValidationPipe`.
- *
- * `forbidNonWhitelisted` is deliberate: a client that sends a misspelled field
- * gets told, instead of silently watching their setting not apply.
- */
-const VALIDATION_PIPE_OPTIONS: ValidationPipeOptions = {
-  whitelist: true,
-  forbidNonWhitelisted: true,
-  transform: true,
-  transformOptions: { enableImplicitConversion: false },
-  stopAtFirstError: false,
-};
+import { VALIDATION_PIPE_OPTIONS } from './validation-pipe-options';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, {

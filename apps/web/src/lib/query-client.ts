@@ -1,31 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
-import type { ApiErrorCode } from '@voiceflow/shared';
-import { env } from '@/config/env';
-
-/** Thrown by the API client so callers can branch on a canonical error code. */
-export class ApiClientError extends Error {
-  constructor(
-    readonly code: ApiErrorCode | 'NETWORK_ERROR',
-    message: string,
-    readonly status: number,
-    readonly details?: unknown,
-  ) {
-    super(message);
-    this.name = 'ApiClientError';
-  }
-
-  get isUnauthorized(): boolean {
-    return this.code === 'UNAUTHORIZED' || this.code === 'TOKEN_EXPIRED';
-  }
-
-  get isValidation(): boolean {
-    return this.code === 'VALIDATION_ERROR';
-  }
-
-  get isConflict(): boolean {
-    return this.code === 'CONFLICT';
-  }
-}
+import { ApiError } from '@/lib/api-client';
 
 /**
  * Shared query client.
@@ -41,16 +15,19 @@ export const queryClient = new QueryClient({
       gcTime: 5 * 60_000,
       refetchOnWindowFocus: false,
       retry: (failureCount, error) => {
-        if (error instanceof ApiClientError) {
-          if (
-            error.code === 'VALIDATION_ERROR' ||
-            error.code === 'UNAUTHORIZED' ||
-            error.code === 'FORBIDDEN' ||
-            error.code === 'NOT_FOUND' ||
-            error.code === 'CONFLICT' ||
-            error.code === 'TOO_MANY_REQUESTS'
-          ) {
-            return false;
+        if (error instanceof ApiError) {
+          switch (error.code) {
+            case 'VALIDATION_ERROR':
+            case 'UNAUTHORIZED':
+            case 'TOKEN_EXPIRED':
+            case 'FORBIDDEN':
+            case 'NOT_FOUND':
+            case 'CONFLICT':
+            case 'TOO_MANY_REQUESTS':
+              // Retrying cannot change the outcome of any of these.
+              return false;
+            default:
+              break;
           }
         }
         return failureCount < 2;
@@ -61,9 +38,3 @@ export const queryClient = new QueryClient({
     },
   },
 });
-
-/** Absolute URL for an API path, honouring the configured base URL. */
-export function apiUrl(path: string): string {
-  const normalised = path.startsWith('/') ? path : `/${path}`;
-  return `${env.apiBaseUrl}${normalised}`;
-}

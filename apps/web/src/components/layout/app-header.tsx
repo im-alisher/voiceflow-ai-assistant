@@ -1,10 +1,10 @@
 import { Bell, Menu, Mic, Moon, Sun } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTheme } from '@/components/theme/theme-provider';
 import { useUiStore } from '@/stores/ui-store';
+import { UserMenu } from '@/components/layout/user-menu';
 import { ROUTES } from '@/routes/paths';
 
 /**
@@ -70,9 +70,7 @@ export function AppHeader() {
           <TooltipContent>{isDark ? 'Light theme' : 'Dark theme'}</TooltipContent>
         </Tooltip>
 
-        <Badge variant="outline" className="ml-2 hidden lg:inline-flex">
-          Phase 3
-        </Badge>
+        <UserMenu />
       </div>
     </header>
   );
