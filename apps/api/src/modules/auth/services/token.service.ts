@@ -51,9 +51,7 @@ export class TokenService {
 
   /** `rememberMe` extends the refresh window without touching the access TTL. */
   refreshLifetimeFor(rememberMe: boolean): number {
-    return rememberMe
-      ? this.refreshTtlSeconds * 4
-      : this.refreshTtlSeconds;
+    return rememberMe ? this.refreshTtlSeconds * 4 : this.refreshTtlSeconds;
   }
 
   async signAccessToken(payload: TokenPairPayload): Promise<{ token: string; expiresAt: Date }> {

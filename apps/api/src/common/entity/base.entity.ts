@@ -1,9 +1,4 @@
-import {
-  BeforeInsert,
-  CreateDateColumn,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { BeforeInsert, CreateDateColumn, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 /**
  * Shared identity + auditing columns.

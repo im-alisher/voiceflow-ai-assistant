@@ -1,6 +1,11 @@
 import 'reflect-metadata';
 
-import { Logger, ValidationPipe, type INestApplication, type ValidationPipeOptions } from '@nestjs/common';
+import {
+  Logger,
+  ValidationPipe,
+  type INestApplication,
+  type ValidationPipeOptions,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';

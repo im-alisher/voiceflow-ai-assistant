@@ -28,7 +28,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     });
   }
 
-  validate(claims: { sub: string; email: string; role: UserRole; sid: string }): AuthenticatedPrincipal {
+  validate(claims: {
+    sub: string;
+    email: string;
+    role: UserRole;
+    sid: string;
+  }): AuthenticatedPrincipal {
     if (!claims?.sub || !claims?.sid) {
       throw AppException.unauthorized('Malformed access token');
     }

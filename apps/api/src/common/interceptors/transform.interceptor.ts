@@ -21,10 +21,7 @@ import type { AuthenticatedRequest } from '../interfaces';
 export class TransformInterceptor<T> implements NestInterceptor<T, unknown> {
   constructor(private readonly reflector: Reflector) {}
 
-  intercept(
-    context: ExecutionContext,
-    next: CallHandler<T>,
-  ): Observable<unknown> {
+  intercept(context: ExecutionContext, next: CallHandler<T>): Observable<unknown> {
     const skip = this.reflector.getAllAndOverride<boolean>(SKIP_TRANSFORM_KEY, [
       context.getHandler(),
       context.getClass(),

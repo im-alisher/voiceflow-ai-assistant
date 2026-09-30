@@ -16,9 +16,9 @@ export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc');
 
 export const uuidSchema = z.string().uuid();
 
-export const isoDateTimeSchema = z
-  .string()
-  .refine((value) => !Number.isNaN(Date.parse(value)), { message: 'Must be an ISO-8601 timestamp' });
+export const isoDateTimeSchema = z.string().refine((value) => !Number.isNaN(Date.parse(value)), {
+  message: 'Must be an ISO-8601 timestamp',
+});
 
 /**
  * Password policy enforced identically on the client (inline hints) and the

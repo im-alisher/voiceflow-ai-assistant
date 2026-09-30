@@ -38,7 +38,10 @@ export class AppException extends HttpException {
     return new AppException('UNAUTHORIZED', message, details);
   }
 
-  static forbidden(message = 'You do not have access to this resource', details?: unknown): AppException {
+  static forbidden(
+    message = 'You do not have access to this resource',
+    details?: unknown,
+  ): AppException {
     return new AppException('FORBIDDEN', message, details);
   }
 

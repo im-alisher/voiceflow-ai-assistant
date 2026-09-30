@@ -10,7 +10,9 @@ const booleanish = (defaultValue: boolean) =>
   z
     .union([z.boolean(), z.string()])
     .default(defaultValue)
-    .transform((value) => (typeof value === 'boolean' ? value : ['1', 'true', 'yes', 'on'].includes(value.toLowerCase())));
+    .transform((value) =>
+      typeof value === 'boolean' ? value : ['1', 'true', 'yes', 'on'].includes(value.toLowerCase()),
+    );
 
 const csv = (defaultValue: string) =>
   z

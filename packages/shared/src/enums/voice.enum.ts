@@ -14,7 +14,13 @@ export const SPEECH_SESSIONS_STATUSES = ['idle', 'listening', 'processing', 'fai
 export type SpeechSessionStatus = (typeof SPEECH_SESSIONS_STATUSES)[number];
 
 /** Terminal state of a speech synthesis (text-to-speech) operation. */
-export const SPEECH_SYNTHESIS_STATUSES = ['idle', 'speaking', 'paused', 'stopped', 'failed'] as const;
+export const SPEECH_SYNTHESIS_STATUSES = [
+  'idle',
+  'speaking',
+  'paused',
+  'stopped',
+  'failed',
+] as const;
 
 export type SpeechSynthesisStatus = (typeof SPEECH_SYNTHESIS_STATUSES)[number];
 

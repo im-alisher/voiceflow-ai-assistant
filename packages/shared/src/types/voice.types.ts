@@ -20,14 +20,7 @@ export interface StartListeningOptions {
   readonly maxDurationMs?: number;
 }
 
-export const STT_EVENTS = [
-  'result',
-  'partial',
-  'error',
-  'end',
-  'start',
-  'volume',
-] as const;
+export const STT_EVENTS = ['result', 'partial', 'error', 'end', 'start', 'volume'] as const;
 
 export type SttEventName = (typeof STT_EVENTS)[number];
 export type SttEventListener = (payload: never) => void;

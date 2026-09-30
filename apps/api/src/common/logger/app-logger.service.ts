@@ -17,7 +17,10 @@ import { maskSecrets, serializeError } from './redact';
 export class AppLogger implements LoggerService {
   private readonly pretty: boolean;
 
-  constructor(private readonly context: string, pretty = true) {
+  constructor(
+    private readonly context: string,
+    pretty = true,
+  ) {
     this.pretty = pretty;
   }
 

@@ -1,9 +1,5 @@
 import { z } from 'zod';
-import {
-  AI_PROVIDER_IDS,
-  FONT_SCALES,
-  THEME_MODES,
-} from '../enums';
+import { AI_PROVIDER_IDS, FONT_SCALES, THEME_MODES } from '../enums';
 import { localeSchema, timeZoneSchema } from './common.schema';
 
 export const updateProfileSchema = z

@@ -38,10 +38,19 @@ export interface PageInfo {
 
 /** Streamed completion frames, serialised as SSE `data:` lines. */
 export type AgentStreamEvent =
-  | { readonly type: 'meta'; readonly conversationId: string; readonly model: string; readonly providerId: string }
+  | {
+      readonly type: 'meta';
+      readonly conversationId: string;
+      readonly model: string;
+      readonly providerId: string;
+    }
   | { readonly type: 'delta'; readonly delta: string }
   | { readonly type: 'turn'; readonly userMessageId: string; readonly assistantMessageId: string }
-  | { readonly type: 'done'; readonly finishReason: string; readonly tokenUsage: { promptTokens: number; completionTokens: number; totalTokens: number } }
+  | {
+      readonly type: 'done';
+      readonly finishReason: string;
+      readonly tokenUsage: { promptTokens: number; completionTokens: number; totalTokens: number };
+    }
   | { readonly type: 'error'; readonly code: ApiErrorCode; readonly message: string };
 
 export const AGENT_STREAM_EVENT_TYPES = ['meta', 'delta', 'turn', 'done', 'error'] as const;

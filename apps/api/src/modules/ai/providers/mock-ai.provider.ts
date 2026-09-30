@@ -76,7 +76,8 @@ const INTENTS: readonly IntentRule[] = [
   },
   {
     name: 'arithmetic',
-    pattern: /\b(?:add|sum|total|calculate|compute)\b.*?(\d+(?:\.\d+)?)\s*([+\-*/x×])\s*(\d+(?:\.\d+)?)/i,
+    pattern:
+      /\b(?:add|sum|total|calculate|compute)\b.*?(\d+(?:\.\d+)?)\s*([+\-*/x×])\s*(\d+(?:\.\d+)?)/i,
     respond: (match) => {
       // `RegExpMatchArray[0]` is the full match, so groups are read by index.
       const leftRaw = match[1] ?? '';

@@ -10,10 +10,7 @@ import {
 } from '../enums';
 
 /** Narrows an arbitrary value to a member of a `readonly string[]` union. */
-export function isMemberOf<T extends string>(
-  values: readonly T[],
-  value: unknown,
-): value is T {
+export function isMemberOf<T extends string>(values: readonly T[], value: unknown): value is T {
   return typeof value === 'string' && (values as readonly string[]).includes(value);
 }
 
