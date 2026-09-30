@@ -1,0 +1,40 @@
+{
+  "name": "voiceflow-ai-assistant",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Voiceflow — a voice-first AI assistant platform with an abstracted provider layer (no paid APIs required).",
+  "license": "MIT",
+  "author": "Voiceflow Engineering",
+  "engines": {
+    "node": ">=20.11.0",
+    "npm": ">=10.2.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=@voiceflow/shared && npm run build --workspace=@voiceflow/api && npm run build --workspace=@voiceflow/web",
+    "build:shared": "npm run build --workspace=@voiceflow/shared",
+    "build:api": "npm run build:shared && npm run build --workspace=@voiceflow/api",
+    "build:web": "npm run build:shared && npm run build --workspace=@voiceflow/web",
+    "dev": "concurrently -n shared,api,web -c gray,cyan,magenta \"npm:dev:shared\" \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:shared": "npm run dev --workspace=@voiceflow/shared",
+    "dev:api": "npm run start:dev --workspace=@voiceflow/api",
+    "dev:web": "npm run dev --workspace=@voiceflow/web",
+    "clean": "rimraf \"packages/*/dist\" \"apps/*/dist\" \"apps/*/build\"",
+    "typecheck": "npm run build:shared && npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "lint:fix": "npm run lint:fix --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "verify": "npm run lint && npm run typecheck && npm run format:check && npm run build"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.9",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.7.2"
+  }
+}
