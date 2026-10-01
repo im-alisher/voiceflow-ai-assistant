@@ -35,6 +35,8 @@ export const envSchema = z.object({
   API_BODY_LIMIT: z.string().default('1mb'),
   API_RATE_LIMIT_TTL_MS: z.coerce.number().int().min(1000).default(60_000),
   API_RATE_LIMIT_MAX: z.coerce.number().int().min(1).default(120),
+  /** Origin of the web client; reset links are built from it. */
+  WEB_APP_URL: z.string().url().default('http://localhost:5173'),
 
   DB_HOST: z.string().min(1).default('localhost'),
   DB_PORT: z.coerce.number().int().min(1).max(65535).default(5432),
@@ -54,6 +56,7 @@ export const envSchema = z.object({
   JWT_ISSUER: z.string().default('voiceflow'),
   JWT_AUDIENCE: z.string().default('voiceflow-web'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(8).max(15).default(12),
+  AUTH_PASSWORD_RESET_TTL_MINUTES: z.coerce.number().int().min(5).max(1_440).default(60),
   AUTH_COOKIE_DOMAIN: z.string().optional(),
   AUTH_COOKIE_SECURE: booleanish(false),
   AUTH_COOKIE_SAME_SITE: z.enum(['lax', 'strict', 'none']).default('lax'),
@@ -65,6 +68,9 @@ export const envSchema = z.object({
   AI_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(16).max(32_768).default(1024),
   AI_TEMPERATURE: z.coerce.number().min(0).max(2).default(0.7),
 
+  MAIL_TRANSPORT: z.enum(['console', 'smtp']).default('console'),
+  MAIL_FROM: z.string().min(3).default('Voiceflow <no-reply@voiceflow.local>'),
+
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
   LOG_PRETTY: booleanish(true),
 });
@@ -73,6 +79,8 @@ export type EnvironmentVariables = z.infer<typeof envSchema>;
 
 export interface AppConfig {
   readonly nodeEnv: EnvironmentVariables['NODE_ENV'];
+  /** Absolute origin of the web client, e.g. the base of a reset link. */
+  readonly webUrl: string;
   readonly isProduction: boolean;
   readonly isDevelopment: boolean;
   readonly isTest: boolean;
@@ -107,6 +115,18 @@ export interface DatabaseConfig {
   readonly migrationsRun: false;
 }
 
+export interface MailConfig {
+  /**
+   * `console` writes the rendered message to the log instead of sending it.
+   *
+   * The default is deliberate: a development machine must not need SMTP
+   * credentials to exercise the reset flow, and an unconfigured deployment must
+   * fail loudly in the logs rather than silently swallowing a password reset.
+   */
+  readonly transport: EnvironmentVariables['MAIL_TRANSPORT'];
+  readonly from: string;
+}
+
 export interface AuthConfig {
   readonly accessSecret: string;
   readonly accessTtl: string;
@@ -115,6 +135,8 @@ export interface AuthConfig {
   readonly issuer: string;
   readonly audience: string;
   readonly bcryptSaltRounds: number;
+  /** Lifetime of a password-reset token, bounded by the DTO and the entity. */
+  readonly passwordResetTtlMinutes: number;
   readonly cookie: {
     readonly domain?: string;
     readonly secure: boolean;
@@ -138,6 +160,7 @@ export interface LogConfig {
 
 export interface RootConfig {
   readonly app: AppConfig;
+  readonly mail: MailConfig;
   readonly http: HttpConfig;
   readonly database: DatabaseConfig;
   readonly auth: AuthConfig;

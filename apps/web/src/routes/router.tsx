@@ -24,6 +24,7 @@ const SettingsPage = lazy(() => import('@/pages/settings/settings-page'));
 const LoginPage = lazy(() => import('@/pages/auth/login-page'));
 const RegisterPage = lazy(() => import('@/pages/auth/register-page'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/forgot-password-page'));
+const ResetPasswordPage = lazy(() => import('@/pages/auth/reset-password-page'));
 const NotFoundPage = lazy(() => import('@/pages/error/not-found-page'));
 
 export const router = createBrowserRouter([
@@ -37,6 +38,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.login, element: <LoginPage /> },
           { path: ROUTES.register, element: <RegisterPage /> },
           { path: ROUTES.forgotPassword, element: <ForgotPasswordPage /> },
+          { path: ROUTES.resetPassword, element: <ResetPasswordPage /> },
         ],
       },
     ],

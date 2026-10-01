@@ -1,6 +1,8 @@
+import type { ConfigService } from '@nestjs/config';
 import type { UsersService } from '../users/users.service';
 import type { User } from '../users/entities/user.entity';
 import type { SessionService, SessionContext } from './services/session.service';
+import type { PasswordResetService } from './services/password-reset.service';
 import { PasswordService } from './services/password.service';
 import type { TokenService } from './services/token.service';
 import { AuthService } from './auth.service';
@@ -84,6 +86,10 @@ interface Harness {
     needsRehash: jest.Mock;
     assertAcceptable: jest.Mock;
   };
+  readonly resets: {
+    issue: jest.Mock;
+    consume: jest.Mock;
+  };
 }
 
 function createHarness(): Harness {
@@ -141,12 +147,30 @@ function createHarness(): Harness {
   const tokenService = tokens as unknown as TokenService;
   const passwordService = passwords as unknown as PasswordService;
 
+  const resetService = {
+    issue: jest.fn().mockResolvedValue({ raw: 'raw-token', expiresAt: new Date() }),
+    consume: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const config = {
+    getOrThrow: jest.fn().mockReturnValue({ webUrl: 'https://app.voiceflow.test' }),
+  } as unknown as ConfigService;
+
   return {
-    service: new AuthService(usersService, tokenService, passwordService, sessionService, clock),
+    service: new AuthService(
+      usersService,
+      tokenService,
+      passwordService,
+      sessionService,
+      resetService as unknown as PasswordResetService,
+      clock,
+      config,
+    ),
     sessions,
     users,
     tokens,
     passwords,
+    resets: resetService,
   };
 }
 
@@ -415,13 +439,61 @@ describe('AuthService', () => {
   });
 
   describe('requestPasswordReset', () => {
-    it('never reveals whether the address exists', async () => {
+    it('issues a token for a registered address', async () => {
+      const harness = createHarness();
+      harness.users.findByEmail.mockResolvedValue(buildUser());
+
+      await expect(harness.service.requestPasswordReset('ada@voiceflow.local')).resolves.toBe(true);
+      expect(harness.resets.issue).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: expect.any(String) as string }),
+      );
+    });
+
+    it('sends nothing for an unknown address', async () => {
+      const harness = createHarness();
+      harness.users.findByEmail.mockResolvedValue(null);
+
+      await expect(harness.service.requestPasswordReset('unknown@voiceflow.local')).resolves.toBe(
+        false,
+      );
+      expect(harness.resets.issue).not.toHaveBeenCalled();
+    });
+
+    it('still spends a password comparison for an unknown address', async () => {
+      // Otherwise the two branches differ in cost, and the difference is
+      // exactly what an enumeration attack measures.
+      const harness = createHarness();
+      harness.users.findByEmail.mockResolvedValue(null);
+
+      await harness.service.requestPasswordReset('unknown@voiceflow.local');
+
+      expect(harness.passwords.verify).toHaveBeenCalledWith('', null);
+    });
+
+    it('sends nothing for a deactivated account', async () => {
+      const harness = createHarness();
+      harness.users.findByEmail.mockResolvedValue({ ...buildUser(), isActive: false });
+
+      await expect(harness.service.requestPasswordReset('ada@voiceflow.local')).resolves.toBe(
+        false,
+      );
+      expect(harness.resets.issue).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('forwards the token to the reset service', async () => {
       const harness = createHarness();
 
-      await expect(
-        harness.service.requestPasswordReset('unknown@voiceflow.local'),
-      ).resolves.toBeNull();
-      expect(harness.users.findByEmail).not.toHaveBeenCalled();
+      await harness.service.resetPassword({
+        token: 'raw',
+        newPassword: 'a-long-enough-passphrase',
+      });
+
+      expect(harness.resets.consume).toHaveBeenCalledWith({
+        rawToken: 'raw',
+        newPassword: 'a-long-enough-passphrase',
+      });
     });
   });
 });

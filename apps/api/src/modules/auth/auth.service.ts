@@ -8,7 +8,10 @@ import type {
   LoginInput,
   RegisterInput,
 } from '@voiceflow/shared';
+import { WEB_ROUTES } from '@voiceflow/shared';
+import { ConfigService } from '@nestjs/config';
 import { AppException, CLOCK, type Clock } from '../../common';
+import { CONFIG_NAMESPACE, type AppConfig } from '../../config';
 import type { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import {
@@ -17,6 +20,7 @@ import {
   type SessionSummary,
 } from './services/session.service';
 import { PasswordService } from './services/password.service';
+import { PasswordResetService } from './services/password-reset.service';
 import { TokenService } from './services/token.service';
 
 /** Credentials plus the request metadata captured for the session record. */
@@ -45,8 +49,21 @@ export class AuthService {
     private readonly tokens: TokenService,
     private readonly passwords: PasswordService,
     private readonly sessions: SessionService,
+    private readonly resets: PasswordResetService,
     @Inject(CLOCK) private readonly clock: Clock,
-  ) {}
+    config: ConfigService,
+  ) {
+    this.resetUrlBase = `${config.getOrThrow<AppConfig>(CONFIG_NAMESPACE.APP).webUrl}${WEB_ROUTES.resetPassword}`;
+  }
+
+  /**
+   * Where the emailed reset link points.
+   *
+   * A web origin, because the link is followed by a human in a browser. It is
+   * read from configuration rather than guessed, so a deployment behind a
+   * different host still produces a working link.
+   */
+  private readonly resetUrlBase: string;
 
   /**
    * Verifies credentials and opens a session.
@@ -194,14 +211,36 @@ export class AuthService {
    * Password-reset request.
    *
    * Always resolves successfully: reporting whether an address is registered
-   * would turn this endpoint into an account-enumeration oracle. Delivery is not
-   * implemented in this phase — a mail transport arrives with the security work
-   * in Phase 9 — so the method has no side effects.
+   * would turn this endpoint into an account-enumeration oracle. The lookup and
+   * the mail send therefore happen in the same branch-free path, and the caller
+   * learns nothing from the response or its timing.
    */
-  requestPasswordReset(email: string): Promise<AuthUserDto | null> {
-    // Intentionally resolves without touching the user store.
-    void email;
-    return Promise.resolve(null);
+  async requestPasswordReset(email: string): Promise<boolean> {
+    const user = await this.users.findByEmail(email);
+
+    // Paid on every request regardless of whether the address exists. Skip it
+    // and the registered branch answers measurably faster, because there is no
+    // hash to verify — which is precisely the signal an enumeration attack
+    // measures. The two branches are still not identical (only one of them
+    // writes a row and sends a message); this closes the cheap tell, not the
+    // whole gap.
+    await this.passwords.verify('', null);
+
+    if (!user || !user.isActive) return false;
+
+    await this.resets.issue({
+      userId: user.id,
+      email: user.email,
+      displayName: user.displayName,
+      resetUrlBase: this.resetUrlBase,
+      ipAddress: null,
+    });
+    return true;
+  }
+
+  /** Redeems a reset token and revokes every live session. */
+  async resetPassword(input: { token: string; newPassword: string }): Promise<void> {
+    await this.resets.consume({ rawToken: input.token, newPassword: input.newPassword });
   }
 
   /**

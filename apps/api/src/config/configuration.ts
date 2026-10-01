@@ -7,6 +7,7 @@ export const CONFIG_NAMESPACE = {
   DATABASE: 'database',
   AUTH: 'auth',
   AI: 'ai',
+  MAIL: 'mail',
   LOG: 'log',
 } as const;
 
@@ -20,6 +21,7 @@ export function buildConfig(env: EnvironmentVariables): RootConfig {
   return {
     app: {
       nodeEnv: env.NODE_ENV,
+      webUrl: env.WEB_APP_URL.replace(/\/$/, ''),
       isProduction: env.NODE_ENV === 'production',
       isDevelopment: env.NODE_ENV === 'development',
       isTest: env.NODE_ENV === 'test',
@@ -57,11 +59,16 @@ export function buildConfig(env: EnvironmentVariables): RootConfig {
       issuer: env.JWT_ISSUER,
       audience: env.JWT_AUDIENCE,
       bcryptSaltRounds: env.BCRYPT_SALT_ROUNDS,
+      passwordResetTtlMinutes: env.AUTH_PASSWORD_RESET_TTL_MINUTES,
       cookie: {
         domain: env.AUTH_COOKIE_DOMAIN || undefined,
         secure: env.AUTH_COOKIE_SECURE,
         sameSite: env.AUTH_COOKIE_SAME_SITE,
       },
+    },
+    mail: {
+      transport: env.MAIL_TRANSPORT,
+      from: env.MAIL_FROM,
     },
     ai: {
       provider: env.AI_PROVIDER,

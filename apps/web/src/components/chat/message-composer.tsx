@@ -11,6 +11,12 @@ export interface MessageComposerProps {
   readonly isStreaming?: boolean;
   readonly disabled?: boolean;
   readonly placeholder?: string;
+  /**
+   * Pre-fills the box, used when handing a transcript over from the voice lab.
+   * Adopted once per distinct value: re-applying on every render would discard
+   * whatever the user has typed since.
+   */
+  readonly initialContent?: string;
 }
 
 /**
@@ -28,14 +34,21 @@ export function MessageComposer({
   isStreaming = false,
   disabled = false,
   placeholder = 'Ask the assistant anything…',
+  initialContent,
 }: MessageComposerProps) {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(initialContent ?? '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const trimmed = content.trim();
   const isTooLong = content.length > LIMITS.MESSAGE_MAX_LENGTH;
   const canSend = !disabled && !isStreaming && trimmed.length > 0 && !isTooLong;
   const isOverLimit = isTooLong || content.length > LIMITS.MESSAGE_MAX_LENGTH * 0.95;
+
+  // A handed-over draft replaces the box only when it is a new value, so
+  // switching conversations mid-typing does not clobber unsent text.
+  useEffect(() => {
+    if (initialContent !== undefined) setContent(initialContent);
+  }, [initialContent]);
 
   // Focus returns to the box after a turn completes so the next message can be
   // typed without reaching for the mouse.

@@ -7,7 +7,9 @@ import {
   IsString,
   Length,
   MaxLength,
+  MinLength,
 } from 'class-validator';
+import { LIMITS } from '@voiceflow/shared';
 
 export class LoginDto {
   @ApiProperty({ example: 'ada@voiceflow.local' })
@@ -84,4 +86,24 @@ export class ForgotPasswordDto {
   @ApiProperty({ example: 'ada@voiceflow.local' })
   @IsEmail({}, { message: 'A valid email address is required' })
   email!: string;
+}
+
+/** Redeems an emailed reset token for a new password. */
+export class ResetPasswordDto {
+  @ApiProperty({ description: 'The token from the emailed reset link' })
+  @IsString()
+  @Length(20, 200)
+  token!: string;
+
+  @ApiProperty({ description: 'The new password', minLength: LIMITS.PASSWORD_MIN_LENGTH })
+  @IsString()
+  @MinLength(LIMITS.PASSWORD_MIN_LENGTH)
+  @MaxLength(LIMITS.PASSWORD_MAX_LENGTH)
+  newPassword!: string;
+
+  /** Echoed back so the form can show which account was changed. */
+  @ApiPropertyOptional({ example: 'ada@voiceflow.local' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 }

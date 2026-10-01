@@ -89,6 +89,10 @@ describe('MockAiProvider', () => {
     expect(result.value.usage.completionTokens).toBeLessThanOrEqual(8);
   });
 
+  // The provider paces output at 18ms per 3-character chunk, so replaying a
+  // ~750 character answer through the stream legitimately takes ~4.5s. The
+  // default 5s Jest timeout left no headroom, and this test began failing as
+  // unrelated suites were added in parallel. It measures behaviour, not speed.
   it('streams chunks that reassemble into the buffered answer', async () => {
     const streamed: string[] = [];
     let terminalFinish: string | undefined;
@@ -104,7 +108,7 @@ describe('MockAiProvider', () => {
 
     expect(streamed.join('')).toBe(buffered.value.content);
     expect(terminalFinish).toBe('stop');
-  });
+  }, 20_000);
 
   it('stops streaming when the caller aborts', async () => {
     const controller = new AbortController();

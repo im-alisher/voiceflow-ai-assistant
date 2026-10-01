@@ -20,6 +20,7 @@ export const API_ROUTES = {
     changePassword: '/auth/change-password',
     forgotPassword: '/auth/forgot-password',
     sessions: '/auth/sessions',
+    resetPassword: '/auth/reset-password',
   },
   users: {
     base: '/users',
@@ -46,6 +47,13 @@ export const API_ROUTES = {
     base: '/voice',
     transcribe: '/voice/transcribe',
     synthesize: '/voice/synthesize',
+    voices: '/voice/voices',
+  },
+  analytics: {
+    base: '/analytics',
+    summary: '/analytics/summary',
+    usage: '/analytics/usage',
+    activity: '/analytics/activity',
   },
 } as const;
 
@@ -59,6 +67,16 @@ export const ANONYMOUS_ROUTES: readonly string[] = [
   API_ROUTES.health.liveness,
   API_ROUTES.health.readiness,
 ];
+
+/**
+ * Client-side paths the API links to from an email.
+ *
+ * Lives here because an emailed link has to agree with the router: a reset URL
+ * built from a path string in the API would silently drift from the route table.
+ */
+export const WEB_ROUTES = {
+  resetPassword: '/reset-password',
+} as const;
 
 /** Storage key for the persisted (non-sensitive) auth session. */
 export const AUTH_STORAGE_KEY = 'voiceflow.auth.session';

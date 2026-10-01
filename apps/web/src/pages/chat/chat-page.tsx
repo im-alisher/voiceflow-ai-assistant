@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, ArchiveRestore, MessageSquarePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ConversationDto } from '@voiceflow/shared';
@@ -32,6 +32,10 @@ import { ROUTES } from '@/routes/paths';
 export default function ChatPage() {
   const { conversationId } = useParams<{ conversationId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // The voice lab hands a transcript over as `?draft=…`.
+  const draft = searchParams.get('draft') ?? undefined;
 
   const conversations = useConversations();
   const conversation = useConversation(conversationId);
@@ -77,6 +81,15 @@ export default function ChatPage() {
 
     navigate(ROUTES.conversation(newest.id), { replace: true });
   }, [conversationId, rows, navigate]);
+
+  // Stripped once the composer has taken it: leaving a transcript in the URL
+  // would put it in browser history and in any copied link.
+  useEffect(() => {
+    if (!draft) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('draft');
+    setSearchParams(next, { replace: true });
+  }, [draft, searchParams, setSearchParams]);
 
   const startConversation = useCallback(async () => {
     const created = await createConversation.mutateAsync({});
@@ -227,6 +240,7 @@ export default function ChatPage() {
                   onStop={stop}
                   isStreaming={isStreaming}
                   disabled={isDeleted || conversation.isLoading}
+                  initialContent={draft}
                 />
                 {error ? (
                   <p className="text-destructive mt-2 text-sm" role="alert">

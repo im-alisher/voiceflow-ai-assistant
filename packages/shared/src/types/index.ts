@@ -5,3 +5,5 @@ export * from './conversation.types';
 export * from './message.types';
 export * from './user.types';
 export * from './voice.types';
+export * from './analytics.types';
+export * from './voice-session.types';

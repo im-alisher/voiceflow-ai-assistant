@@ -33,6 +33,7 @@ import {
   LoginDto,
   RefreshTokenDto,
   RegisterDto,
+  ResetPasswordDto,
 } from './dto/auth.dto';
 import { AuthCookieService, readRefreshToken } from './services/auth-cookie.service';
 import type { SessionSummary } from './services/session.service';
@@ -172,6 +173,24 @@ export class AuthController {
   ): Promise<ApiResponseDto<{ accepted: true }>> {
     await this.auth.requestPasswordReset(body.email);
     return ApiResponseDto.ok({ accepted: true });
+  }
+
+  /**
+   * Redeems a reset token.
+   *
+   * Public because the user holding the token is, by definition, not signed in.
+   * The token is the credential; it is single-use, short-lived, and every live
+   * session is revoked on success.
+   */
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @ApiOperation({ summary: 'Set a new password using a reset token' })
+  @ApiOkResponse({ description: 'Password changed; all sessions revoked' })
+  async resetPassword(@Body() body: ResetPasswordDto): Promise<ApiResponseDto<{ reset: true }>> {
+    await this.auth.resetPassword({ token: body.token, newPassword: body.newPassword });
+    return ApiResponseDto.ok({ reset: true });
   }
 
   @Get('sessions')

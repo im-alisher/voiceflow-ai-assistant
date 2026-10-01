@@ -9,11 +9,14 @@ import { RequestContextMiddleware } from './common/middleware/request-context.mi
 import { AppConfigModule } from './config/config.module';
 import { CONFIG_NAMESPACE, type HttpConfig } from './config';
 import { AiModule } from './modules/ai/ai.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { ConversationsModule } from './modules/conversations/conversations.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { HealthModule } from './modules/health/health.module';
+import { MailModule } from './modules/mail/mail.module';
+import { VoiceModule } from './modules/voice/voice.module';
 import { UsersModule } from './modules/users/users.module';
 
 /**
@@ -46,9 +49,12 @@ import { UsersModule } from './modules/users/users.module';
     DatabaseModule,
     HealthModule,
     UsersModule,
+    MailModule,
     AuthModule,
     AiModule,
     ConversationsModule,
+    VoiceModule,
+    AnalyticsModule,
   ],
   providers: [
     RequestContextMiddleware,

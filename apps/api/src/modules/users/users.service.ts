@@ -88,6 +88,13 @@ export class UsersService {
     return this.users.findOne({ where: { id } });
   }
 
+  /** Throws rather than returning null, for handlers that have no null case. */
+  async findByIdOrFail(id: string): Promise<User> {
+    const user = await this.findById(id);
+    if (!user) throw AppException.notFound('User');
+    return user;
+  }
+
   /** Same as `findById` but ignores deactivated accounts. */
   async findActiveById(id: string): Promise<User | null> {
     return this.users.findOne({ where: { id, isActive: true } });

@@ -46,8 +46,8 @@ export default function ForgotPasswordPage() {
         <div className="flex flex-col items-center gap-3 py-4 text-center">
           <MailCheck className="text-primary h-8 w-8" aria-hidden="true" />
           <p className="text-muted-foreground text-sm">
-            If an account exists for that address, a reset link is on its way. Delivery is not
-            configured yet on this deployment.
+            If an account exists for that address, a reset link is on its way. This deployment logs
+            mail to the server console rather than sending it.
           </p>
         </div>
       ) : (

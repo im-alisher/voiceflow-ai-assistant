@@ -29,7 +29,14 @@ import { SseWriter } from './sse-writer';
     SseWriter,
     { provide: CLOCK, useValue: systemClock },
   ],
-  exports: [ConversationsService, ConversationTurnService],
+  exports: [
+    ConversationsService,
+    ConversationTurnService,
+    // Read-side consumers (analytics) need the repositories. Exporting the
+    // module rather than the entities keeps them going through TypeORM's
+    // injection token rather than an entity instance.
+    TypeOrmModule,
+  ],
 })
 export class ConversationsModule {}
 
