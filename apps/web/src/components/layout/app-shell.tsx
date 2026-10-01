@@ -1,10 +1,11 @@
 import { Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { AppHeader } from '@/components/layout/app-header';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { MobileNav } from '@/components/layout/mobile-nav';
 import { RouteSkeleton } from '@/components/layout/route-skeleton';
 import { useIsMobile } from '@/hooks/use-media-query';
+import { ROUTES } from '@/routes/paths';
 
 /**
  * Application chrome: sidebar plus scrolling main region.
@@ -19,6 +20,11 @@ import { useIsMobile } from '@/hooks/use-media-query';
  */
 export function AppShell() {
   const isMobile = useIsMobile();
+  const location = useLocation();
+
+  // The chat surface manages its own scrolling, so it takes the full column
+  // rather than the padded, width-capped container the other pages use.
+  const isChatRoute = location.pathname.startsWith(ROUTES.chat);
 
   return (
     <div className="bg-background text-foreground flex h-screen w-full overflow-hidden">
@@ -28,11 +34,19 @@ export function AppShell() {
         <AppHeader />
 
         <main id="main-content" className="min-h-0 flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
-            <Suspense fallback={<RouteSkeleton />}>
-              <Outlet />
-            </Suspense>
-          </div>
+          {isChatRoute ? (
+            <div className="flex h-full min-h-0 flex-col">
+              <Suspense fallback={<RouteSkeleton />}>
+                <Outlet />
+              </Suspense>
+            </div>
+          ) : (
+            <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+              <Suspense fallback={<RouteSkeleton />}>
+                <Outlet />
+              </Suspense>
+            </div>
+          )}
         </main>
       </div>
     </div>

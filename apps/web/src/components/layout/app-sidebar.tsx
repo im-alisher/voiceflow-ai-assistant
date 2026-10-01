@@ -4,8 +4,10 @@ import {
   BRAND,
   NAV_SECTIONS,
   NEW_CONVERSATION_ACTION,
-  type NavigationItem,
 } from '@/features/navigation/navigation.config';
+import { formatRelativeTime, toPreview } from '@/features/chat/chat-format';
+import { useConversationRows, useConversations } from '@/features/chat/use-conversations';
+import type { ConversationDto } from '@voiceflow/shared';
 import { useUiStore } from '@/stores/ui-store';
 import { cn } from '@/lib/utils';
 import { ROUTES } from '@/routes/paths';
@@ -93,48 +95,50 @@ function RecentConversations({
   isCollapsed: boolean;
   onNavigate?: () => void;
 }) {
+  const conversations = useConversations();
+  const rows = useConversationRows(conversations);
+
   if (isCollapsed) return <div className="h-2" />;
 
   return (
     <div className="scrollbar-slim max-h-64 overflow-y-auto px-2 pb-3">
-      <ul className="space-y-0.5">
-        {PLACEHOLDER_RECENT.map((conversation) => (
-          <li key={conversation.id}>
-            <NavLinkButton
-              item={conversation}
-              onNavigate={onNavigate}
-              variant="quiet"
-              className="h-auto justify-start gap-2 py-2"
-            />
-          </li>
-        ))}
-      </ul>
-      <p className="text-muted-foreground px-2 pt-3 text-xs leading-relaxed">
-        History is replaced by live data once conversations are created.
-      </p>
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground px-2 py-3 text-xs leading-relaxed">
+          {conversations.isLoading
+            ? 'Loading conversations…'
+            : 'Recent conversations appear here once you start one.'}
+        </p>
+      ) : (
+        <ul className="space-y-0.5">
+          {rows.slice(0, RECENT_LIMIT).map((conversation) => (
+            <li key={conversation.id}>
+              <NavLinkButton
+                item={{
+                  id: conversation.id,
+                  label: conversation.title,
+                  to: ROUTES.conversation(conversation.id),
+                  icon: BRAND.mark,
+                  description: recentDescription(conversation),
+                }}
+                onNavigate={onNavigate}
+                variant="quiet"
+                className="h-auto justify-start gap-2 py-2"
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
 
-/**
- * Static rows shown until the conversation query is wired in.
- *
- * Presentational only — no data fetching — so the sidebar renders identically
- * in every state and the layout can be reviewed before the API contract lands.
- */
-const PLACEHOLDER_RECENT: readonly NavigationItem[] = [
-  {
-    id: 'recent-1',
-    label: 'Morning stand-up notes',
-    to: ROUTES.conversation('00000000-0000-4000-8000-000000000001'),
-    icon: BRAND.mark,
-    description: 'Last active 4 minutes ago',
-  },
-  {
-    id: 'recent-2',
-    label: 'Voice latency research',
-    to: ROUTES.conversation('00000000-0000-4000-8000-000000000002'),
-    icon: BRAND.mark,
-    description: 'Last active yesterday',
-  },
-];
+/** Rows shown in the collapsed sidebar; the full list lives on the chat page. */
+const RECENT_LIMIT = 8;
+
+/** One line of context: when it was last active and how much it contains. */
+function recentDescription(conversation: ConversationDto): string {
+  const when = formatRelativeTime(conversation.lastMessageAt ?? conversation.updatedAt);
+  if (!conversation.lastMessagePreview) return when || 'No messages yet';
+
+  return `${when} · ${toPreview(conversation.lastMessagePreview, 40)}`;
+}

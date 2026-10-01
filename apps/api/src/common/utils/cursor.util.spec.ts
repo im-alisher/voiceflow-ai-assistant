@@ -17,7 +17,30 @@ describe('cursor.util', () => {
     expect(decodeCursor(cursor, fingerprint)).toEqual({
       key: '2026-01-01T00:00:00.000Z',
       tiebreaker: 'm-9',
+      group: null,
     });
+  });
+
+  it('round-trips the leading group used by pinned-first listings', () => {
+    const cursor = encodeCursor('2026-01-01T00:00:00.000Z', 'c-1', fingerprint, 'true');
+    expect(decodeCursor(cursor, fingerprint).group).toBe('true');
+  });
+
+  it('omits the group from the payload when none is given', () => {
+    const cursor = encodeCursor('k', 't', fingerprint);
+    const payload = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8')) as {
+      g?: string;
+    };
+    expect(payload.g).toBeUndefined();
+  });
+
+  it('rejects a cursor whose group is not a string', () => {
+    const tampered = Buffer.from(
+      JSON.stringify({ k: 'k', t: 't', f: fingerprint, g: 7 }),
+      'utf8',
+    ).toString('base64url');
+
+    expect(() => decodeCursor(tampered, fingerprint)).toThrow('Malformed pagination cursor');
   });
 
   it('rejects a cursor minted for a different query', () => {

@@ -173,7 +173,13 @@ async function rawRequest(url: string, options: RequestOptions): Promise<unknown
   return payload;
 }
 
-function toApiError(status: number, payload: unknown): ApiError {
+/**
+ * Builds an `ApiError` from a non-2xx response.
+ *
+ * Exported so the streaming client, which cannot go through `rawRequest`,
+ * still reports failures in the same canonical shape.
+ */
+export function toApiError(status: number, payload: unknown): ApiError {
   const body = payload as { code?: ApiErrorCode; message?: string; details?: unknown } | null;
 
   const code =

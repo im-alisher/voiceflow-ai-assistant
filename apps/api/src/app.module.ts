@@ -11,6 +11,7 @@ import { CONFIG_NAMESPACE, type HttpConfig } from './config';
 import { AiModule } from './modules/ai/ai.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
+import { ConversationsModule } from './modules/conversations/conversations.module';
 import { DatabaseModule } from './modules/database/database.module';
 import { HealthModule } from './modules/health/health.module';
 import { UsersModule } from './modules/users/users.module';
@@ -47,6 +48,7 @@ import { UsersModule } from './modules/users/users.module';
     UsersModule,
     AuthModule,
     AiModule,
+    ConversationsModule,
   ],
   providers: [
     RequestContextMiddleware,
