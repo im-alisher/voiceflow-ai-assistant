@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule as NestConfigModule } from '@nestjs/config';
 import { ZodError, type ZodIssue } from 'zod';
@@ -50,11 +51,27 @@ function parseEnv(): EnvironmentVariables {
 const isProduction = process.env['NODE_ENV'] === 'production';
 
 /**
+ * Path to the repository-root `.env`.
+ *
+ * The root `.env.example` documents a single environment contract shared by
+ * every workspace, but this process runs with its working directory set to
+ * `apps/api`, so a bare `.env` resolves to `apps/api/.env` and the root file is
+ * never read. Resolving from `__dirname` puts the root contract back in play
+ * without depending on where the process was started from; both `src/config`
+ * (ts-node) and `dist/config` (built) sit at the same depth.
+ */
+const repositoryEnvPath = resolve(__dirname, '..', '..', '..', '..', '.env');
+
+/**
  * Global configuration module.
  *
  * - `.env` files are read only outside production; in production configuration
  *   comes exclusively from the real environment, so a stale file on the host
  *   can never override an injected secret.
+ * - The repository root is listed **last** on purpose. `@nestjs/config` merges
+ *   files so that earlier entries win, which makes a workspace-local
+ *   `apps/api/.env` an override of the shared contract rather than something it
+ *   silently loses to. Real environment variables still beat every file.
  * - `expandVariables` lets a secret reference another (`DB_URL=${OTHER}`).
  * - Results are cached so every consumer observes the same snapshot.
  */
@@ -65,7 +82,9 @@ const isProduction = process.env['NODE_ENV'] === 'production';
       isGlobal: true,
       cache: true,
       expandVariables: true,
-      envFilePath: isProduction ? [] : ['.env.local', '.env.development', '.env'],
+      envFilePath: isProduction
+        ? []
+        : ['.env.local', '.env.development', '.env', repositoryEnvPath],
       validate: () => {
         snapshot();
         return snapshot().env;
